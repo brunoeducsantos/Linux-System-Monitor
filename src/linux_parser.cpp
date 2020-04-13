@@ -4,12 +4,13 @@
 #include <unistd.h>
 #include <string>
 #include <vector>
-#include <filesystem>
+#include <experimental/filesystem>
 
 using std::stof;
 using std::string;
 using std::to_string;
 using std::vector;
+namespace filesystem= std::experimental::filesystem;
 
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
@@ -47,26 +48,12 @@ string LinuxParser::Kernel() {
   return kernel;
 }
 
-// BONUS: Update this to use std::filesystem
+// Get linux folder PIDS 
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
-  // DIR* directory = opendir(kProcDirectory.c_str());
-  // struct dirent* file;
-  // while ((file = readdir(directory)) != nullptr) {
-  //   // Is this a directory?
-  //   if (file->d_type == DT_DIR) {
-  //     // Is every character of the name a digit?
-  //     string filename(file->d_name);
-  //     if (std::all_of(filename.begin(), filename.end(), isdigit)) {
-  //       int pid = stoi(filename);
-  //       pids.push_back(pid);
-  //     }
-  //   }
-  // }
-  // closedir(directory);
-  for (const auto& dir_entry : std::filesystem::directory_iterator((kProcDirectory.c_str()))) {
+  for (const auto& dir_entry : filesystem::directory_iterator((kProcDirectory.c_str()))) {
        // Is this a directory?
-      if(std::filesystem::is_directory(dir_entry)){
+      if(filesystem::is_directory(dir_entry)){
           string filename = dir_entry.path().filename().string();
            if (std::all_of(filename.begin(), filename.end(), isdigit)) {
               int pid = stoi(filename);
