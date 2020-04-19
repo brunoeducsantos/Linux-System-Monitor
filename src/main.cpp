@@ -3,6 +3,5 @@
 #include <iostream>
 int main() {
   System system;
-  float res= system.MemoryUtilization();
   NCursesDisplay::Display(system);
 }

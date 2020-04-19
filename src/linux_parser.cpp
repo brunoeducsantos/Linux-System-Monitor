@@ -2,15 +2,16 @@
 
 #include <dirent.h>
 #include <unistd.h>
-#include <string>
-#include <vector>
+
 #include <experimental/filesystem>
 #include <iostream>
+#include <string>
+#include <vector>
 using std::stof;
 using std::string;
 using std::to_string;
 using std::vector;
-namespace filesystem= std::experimental::filesystem;
+namespace filesystem = std::experimental::filesystem;
 
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::OperatingSystem() {
@@ -48,25 +49,26 @@ string LinuxParser::Kernel() {
   return kernel;
 }
 
-// Get linux folder PIDS 
+// Get linux folder PIDS
 vector<int> LinuxParser::Pids() {
   vector<int> pids;
-  for (const auto& dir_entry : filesystem::directory_iterator((kProcDirectory.c_str()))) {
-       // Is this a directory?
-      if(filesystem::is_directory(dir_entry)){
-          string filename = dir_entry.path().filename().string();
-           if (std::all_of(filename.begin(), filename.end(), isdigit)) {
-              int pid = stoi(filename);
-              pids.push_back(pid);
-        }
+  for (const auto& dir_entry :
+       filesystem::directory_iterator((kProcDirectory.c_str()))) {
+    // Is this a directory?
+    if (filesystem::is_directory(dir_entry)) {
+      string filename = dir_entry.path().filename().string();
+      if (std::all_of(filename.begin(), filename.end(), isdigit)) {
+        int pid = stoi(filename);
+        pids.push_back(pid);
       }
+    }
   }
   return pids;
 }
 
-// TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { 
-  int memtotal=0,memfree=0;
+// Read and return the system memory utilization
+float LinuxParser::MemoryUtilization() {
+  int memtotal = 0, memfree = 0;
   string line;
   string key_;
   string mem;
@@ -77,23 +79,32 @@ float LinuxParser::MemoryUtilization() {
     std::replace(line.begin(), line.end(), ':', ' ');
     std::istringstream linestream(line);
     linestream >> key_;
-    if(key_== "MemTotal") {
+    if (key_ == "MemTotal") {
       linestream >> mem;
-      memtotal= std::stoi(mem);
-     
+      memtotal = std::stoi(mem);
     }
-    if(key_ == "MemFree"){ 
+    if (key_ == "MemFree") {
       linestream >> mem;
-      memfree= std::stoi(mem);
+      memfree = std::stoi(mem);
       stream.close();
     }
   }
-  float memperc= (memtotal-memfree)*1./memtotal*1.;
-  return memperc; 
-  }
+  float memperc = (memtotal - memfree) * 1. / memtotal * 1.;
+  return memperc;
+}
 
-// TODO: Read and return the system uptime
-long LinuxParser::UpTime() { return 0; }
+// Read and return the system uptime
+long LinuxParser::UpTime() {
+  string line;
+  string uptime;
+  std::ifstream stream(kProcDirectory + kUptimeFilename);
+  while (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    linestream >> uptime;
+    return std::stol(uptime);
+  }
+}
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
@@ -111,11 +122,39 @@ long LinuxParser::IdleJiffies() { return 0; }
 // TODO: Read and return CPU utilization
 vector<string> LinuxParser::CpuUtilization() { return {}; }
 
-// TODO: Read and return the total number of processes
-int LinuxParser::TotalProcesses() { return 0; }
+// Read and return the total number of processes
+int LinuxParser::TotalProcesses() {
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  std::string line;
+  std::string key_;
+  std::string processes;
+  while (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    linestream >> key_;
+    if (key_ == "processes") {
+      linestream >> processes;
+      return std::stoi(processes);
+    }
+  }
+}
 
-// TODO: Read and return the number of running processes
-int LinuxParser::RunningProcesses() { return 0; }
+// Read and return the number of running processes
+int LinuxParser::RunningProcesses() {
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  std::string line;
+  std::string key_;
+  std::string procs;
+  while (stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    linestream >> key_;
+    if (key_ == "procs_running") {
+      linestream >> procs;
+      return std::stoi(procs);
+    }
+  }
+}
 
 // TODO: Read and return the command associated with a process
 // REMOVE: [[maybe_unused]] once you define the function
