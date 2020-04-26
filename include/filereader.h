@@ -36,6 +36,20 @@ class FileReader {
       return value;
     }
   }
+  ValueType GetValue(int id) {
+    vector<ValueType> tokens;
+    ValueType value;
+    std::string line;
+    std::ifstream filestream(filename_);
+    if (filestream.is_open()) {
+      while (std::getline(filestream, line, ' ')) {
+        std::istringstream linestream(line);
+        linestream >> value;
+        tokens.push_back(value);
+      }
+    }
+    return tokens[id];
+  }
 
  private:
   string filename_;

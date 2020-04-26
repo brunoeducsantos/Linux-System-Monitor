@@ -1,5 +1,5 @@
 #include "linux_parser.h"
-#include "filereader.h"
+
 #include <dirent.h>
 #include <unistd.h>
 
@@ -7,7 +7,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include <unistd.h>
+#include "filereader.h"
 
 using std::stof;
 using std::string;
@@ -70,12 +71,11 @@ vector<int> LinuxParser::Pids() {
 
 // Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() {
-    FileReader<int> filread(kProcDirectory + kMeminfoFilename);
-    int memtotal= filread.GetValue("MemTotal");
-    int memfree= filread.GetValue("MemFree");
-    float memperc = (memtotal - memfree) * 1. / memtotal * 1.;
-    return memperc;
-
+  FileReader<int> filread(kProcDirectory + kMeminfoFilename);
+  int memtotal = filread.GetValue("MemTotal");
+  int memfree = filread.GetValue("MemFree");
+  float memperc = (memtotal - memfree) * 1. / memtotal * 1.;
+  return memperc;
 }
 
 // Read and return the system uptime
@@ -102,37 +102,39 @@ vector<string> LinuxParser::CpuUtilization() { return {}; }
 
 // Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
-    FileReader<int> filread(kProcDirectory + kStatFilename);
-    return filread.GetValue("processes");
-
+  FileReader<int> filread(kProcDirectory + kStatFilename);
+  return filread.GetValue("processes");
 }
 
 // Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
-    FileReader<int> filread(kProcDirectory + kStatFilename);
-    return filread.GetValue("procs_running");
+  FileReader<int> filread(kProcDirectory + kStatFilename);
+  return filread.GetValue("procs_running");
 }
 
 // Read and return the command associated with a process
 string LinuxParser::Command(int pid) {
-  FileReader<string> filread(kProcDirectory + std::to_string(pid) + kCmdlineFilename);
+  FileReader<string> filread(kProcDirectory + std::to_string(pid) +
+                             kCmdlineFilename);
   return filread.GetValue();
 }
 
 // Read and return the memory used by a process
-string LinuxParser::Ram(int pid) { 
-  FileReader<long> filread(kProcDirectory + std::to_string(pid) + kStatusFilename);
-  float ram= filread.GetValue("VmSize")/1000.;
+string LinuxParser::Ram(int pid) {
+  FileReader<long> filread(kProcDirectory + std::to_string(pid) +
+                           kStatusFilename);
+  float ram = filread.GetValue("VmSize") / 1000.;
   return std::to_string(ram);
- }
+}
 
 // Read and return the user ID associated with a process
 string LinuxParser::Uid(int pid) {
-    FileReader<string> filread(kProcDirectory + std::to_string(pid) + kStatusFilename);
-    return filread.GetValue("Uid");
+  FileReader<string> filread(kProcDirectory + std::to_string(pid) +
+                             kStatusFilename);
+  return filread.GetValue("Uid");
 }
 
-// Read and return the user associated with a process
+// TODO: Read and return the user associated with a process
 string LinuxParser::User(int pid) {
   // std::ifstream stream(kProcDirectory + std::to_string(pid) + kPasswordPath);
   // std::string line;
@@ -147,11 +149,15 @@ string LinuxParser::User(int pid) {
   //   linestream >> user >> tmp >> uid;
   //   if (LinuxParser::Uid(pid) == uid) return user;
   // }
-  FileReader<string> filread(kProcDirectory + std::to_string(pid) + kPasswordPath);
+  FileReader<string> filread(kProcDirectory + std::to_string(pid) +
+                             kPasswordPath);
   return filread.GetValue(filread.GetValue(LinuxParser::Uid(pid)));
-
 }
 
-// TODO: Read and return the uptime of a process
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::UpTime(int pid) { return 0; }
+// Read and return the uptime of a process
+long LinuxParser::UpTime(int pid) {
+  FileReader<long> filread(kProcDirectory + std::to_string(pid) +
+                             kStatFilename);
+  
+  return filread.GetValue(21);;
+}
