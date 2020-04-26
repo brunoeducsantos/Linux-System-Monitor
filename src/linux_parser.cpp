@@ -109,11 +109,11 @@ float LinuxParser::CpuUtilization(int pid) {
   long cutime = res[15];
   long cstime = res[16];
   long starttime = res[21];
-  
+
   long total_time = utime + stime;
   total_time = total_time + cutime + cstime;
   float seconds = UpTime() - (starttime / sysconf(_SC_CLK_TCK));
-  float cpu_usage = 100 * ((total_time / sysconf(_SC_CLK_TCK)) / 1*seconds);
+  float cpu_usage = 100 * ((total_time / sysconf(_SC_CLK_TCK)) / 1 * seconds);
   return cpu_usage;
 }
 
@@ -137,7 +137,7 @@ string LinuxParser::Command(int pid) {
 }
 
 // Read and return the memory used by a process
-//TODO: Fix large invalid numbers
+// TODO: Fix large invalid numbers
 string LinuxParser::Ram(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                            kStatusFilename);
@@ -152,14 +152,19 @@ string LinuxParser::Uid(int pid) {
   return filread.GetValue("Uid");
 }
 
-// TODO: Read and return the user associated with a process
+// Read and return the user associated with a process
+//TODO: fix user mispelling 
 string LinuxParser::User(int pid) {
-  FileReader<long> filread(kPasswordPath);
-  char c  = ':';
-  vector<long> values= filread.GetVectorValue(c);
+  FileReader<string> filread(kPasswordPath);
+  char c = ':';
+  vector<string> values = filread.GetVectorValue(c);
   for (int i = 0; i < filread.GetVectorValue(c).size(); i++) {
-    if (values[i] == std::stol(LinuxParser::Uid(pid)))
-      return std::to_string(values[i - 2]);
+    try {
+      if (std::stoi(values[i]) == std::stol(LinuxParser::Uid(pid)))
+        return values[i + 2];
+    } catch (exception e) {
+      continue;
+    }
   }
 }
 
