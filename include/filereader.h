@@ -36,7 +36,7 @@ class FileReader {
       return value;
     }
   }
-  vector<ValueType> GetVectorValue(string separatr) {
+  vector<ValueType> GetVectorValue(char separatr) {
     vector<ValueType> tokens;
     ValueType value;
     std::string line;

@@ -16,9 +16,9 @@ int Process::Pid() { return pid_; }
 
 //TODO: Return this process's CPU utilization
 float Process::CpuUtilization() { 
-    cpu_utilization_= 0.0;
-    return 0.0; }
+    LinuxParser::CpuUtilization(pid_);
 
+}   
 // Return the command that generated this process
 string Process::Command() { return LinuxParser::Command(pid_); }
 

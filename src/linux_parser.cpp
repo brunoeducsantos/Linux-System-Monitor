@@ -2,14 +2,15 @@
 
 #include <dirent.h>
 #include <unistd.h>
-#include <cmath> 
+
+#include <cmath>
 #include <experimental/filesystem>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <unistd.h>
+
 #include "filereader.h"
-#include <iomanip>
 using std::stof;
 using std::string;
 using std::vector;
@@ -97,7 +98,24 @@ long LinuxParser::ActiveJiffies() { return 0; }
 long LinuxParser::IdleJiffies() { return 0; }
 
 // TODO: Read and return CPU utilization
-vector<string> LinuxParser::CpuUtilization() { return {}; }
+float LinuxParser::CpuUtilization(int pid) {
+  char c = ' ';
+  FileReader<long> filread(kProcDirectory + std::to_string(pid) +
+                           kStatFilename);
+
+  vector<long> res = filread.GetVectorValue(c);
+  long utime = res[13];
+  long stime = res[14];
+  long cutime = res[15];
+  long cstime = res[16];
+  long starttime = res[21];
+  
+  long total_time = utime + stime;
+  total_time = total_time + cutime + cstime;
+  float seconds = UpTime() - (starttime / sysconf(_SC_CLK_TCK));
+  float cpu_usage = 100 * ((total_time / sysconf(_SC_CLK_TCK)) / 1*seconds);
+  return cpu_usage;
+}
 
 // Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
@@ -119,11 +137,12 @@ string LinuxParser::Command(int pid) {
 }
 
 // Read and return the memory used by a process
+//TODO: Fix large invalid numbers
 string LinuxParser::Ram(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                            kStatusFilename);
-  float ram = filread.GetValue("VmSize") / 1024;
-  return std::to_string(round(ram*100.)/100.);
+  float ram = filread.GetValue("VmSize") / 1024.;
+  return std::to_string(ram);
 }
 
 // Read and return the user ID associated with a process
@@ -135,19 +154,19 @@ string LinuxParser::Uid(int pid) {
 
 // TODO: Read and return the user associated with a process
 string LinuxParser::User(int pid) {
-  FileReader<long> filread(kProcDirectory + std::to_string(pid) +
-                             kPasswordPath);
-char c[] = ":";
-for (int i=0; i< filread.GetVectorValue(c).size();i++){
-  if(filread.GetVectorValue(c)[i]==std::stol(LinuxParser::Uid(pid))) return std::to_string(filread.GetVectorValue(c)[i-2]);
-}
-
+  FileReader<long> filread(kPasswordPath);
+  char c  = ':';
+  vector<long> values= filread.GetVectorValue(c);
+  for (int i = 0; i < filread.GetVectorValue(c).size(); i++) {
+    if (values[i] == std::stol(LinuxParser::Uid(pid)))
+      return std::to_string(values[i - 2]);
+  }
 }
 
 // Read and return the uptime of a process
 long LinuxParser::UpTime(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
-                             kStatFilename);
-  char c[] = " ";
-  return filread.GetVectorValue(c)[21]/ sysconf(_SC_CLK_TCK);
+                           kStatFilename);
+  char c = ' ';
+  return UpTime() - filread.GetVectorValue(c)[21] / sysconf(_SC_CLK_TCK);
 }
