@@ -2,17 +2,16 @@
 
 #include <dirent.h>
 #include <unistd.h>
-
+#include <cmath> 
 #include <experimental/filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <unistd.h>
 #include "filereader.h"
-
+#include <iomanip>
 using std::stof;
 using std::string;
-using std::to_string;
 using std::vector;
 namespace filesystem = std::experimental::filesystem;
 
@@ -123,8 +122,8 @@ string LinuxParser::Command(int pid) {
 string LinuxParser::Ram(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                            kStatusFilename);
-  float ram = filread.GetValue("VmSize") / 1000.;
-  return std::to_string(ram);
+  float ram = filread.GetValue("VmSize") / 1024;
+  return std::to_string(round(ram*100.)/100.);
 }
 
 // Read and return the user ID associated with a process
@@ -136,28 +135,19 @@ string LinuxParser::Uid(int pid) {
 
 // TODO: Read and return the user associated with a process
 string LinuxParser::User(int pid) {
-  // std::ifstream stream(kProcDirectory + std::to_string(pid) + kPasswordPath);
-  // std::string line;
-  // std::string user;
-  // std::string tmp;
-  // std::string uid;
-
-  // while (stream.is_open()) {
-  //   std::getline(stream, line);
-  //   std::replace(line.begin(), line.end(), ':', ' ');
-  //   std::istringstream linestream(line);
-  //   linestream >> user >> tmp >> uid;
-  //   if (LinuxParser::Uid(pid) == uid) return user;
-  // }
-  FileReader<string> filread(kProcDirectory + std::to_string(pid) +
+  FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                              kPasswordPath);
-  return filread.GetValue(filread.GetValue(LinuxParser::Uid(pid)));
+char c[] = ":";
+for (int i=0; i< filread.GetVectorValue(c).size();i++){
+  if(filread.GetVectorValue(c)[i]==std::stol(LinuxParser::Uid(pid))) return std::to_string(filread.GetVectorValue(c)[i-2]);
+}
+
 }
 
 // Read and return the uptime of a process
 long LinuxParser::UpTime(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                              kStatFilename);
-  
-  return filread.GetValue(21);;
+  char c[] = " ";
+  return filread.GetVectorValue(c)[21]/ sysconf(_SC_CLK_TCK);
 }
