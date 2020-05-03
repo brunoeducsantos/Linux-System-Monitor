@@ -105,7 +105,7 @@ float LinuxParser::CpuUtilization(int pid) {
   total_time = total_time + cutime + cstime;
   float seconds = UpTime() - (starttime / sysconf(_SC_CLK_TCK));
   
-  float cpu_usage = 100 * ((total_time / sysconf(_SC_CLK_TCK)) / seconds);
+  float cpu_usage =  ((total_time *1./ sysconf(_SC_CLK_TCK)) / seconds);
   
   return cpu_usage;
 }
