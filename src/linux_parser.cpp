@@ -41,15 +41,16 @@ string LinuxParser::OperatingSystem() {
 
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::Kernel() {
-  string os, kernel;
+  string os, kernel, version;  // <----- Declared a new variable version
   string line;
   std::ifstream stream(kProcDirectory + kVersionFilename);
   if (stream.is_open()) {
     std::getline(stream, line);
     std::istringstream linestream(line);
-    linestream >> os >> kernel;
+    linestream >> os >> kernel >>
+        version;  // <-- Extracting the version in a variable version
   }
-  return kernel;
+  return version;  //<---- Return the third variable
 }
 
 // Get linux folder PIDS
@@ -84,7 +85,7 @@ long LinuxParser::UpTime() {
   return filread.GetValue();
 }
 
-// TODO: Read and return CPU utilization
+// Read and return CPU utilization
 float LinuxParser::CpuUtilization(int pid) {
   char c = ' ';
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
@@ -104,34 +105,33 @@ float LinuxParser::CpuUtilization(int pid) {
 
   total_time = total_time + cutime + cstime;
   float seconds = UpTime() - (starttime / sysconf(_SC_CLK_TCK));
-  
-  float cpu_usage =  ((total_time *100./ sysconf(_SC_CLK_TCK)) / seconds);
-  
+
+  float cpu_usage = ((total_time * 1. / sysconf(_SC_CLK_TCK)) / seconds);
+
   return cpu_usage;
 }
-//Read CPU info utilization
+// Read CPU info utilization
 std::vector<long> LinuxParser::InfoCpu() {
-  char c = ' ';
-  FileReader<long> filread2(kProcDirectory +kStatFilename);
-  vector<long> res = filread2.GetVectorValue(c);
-  int  size = res.size();
-  long idle= res[5];
-  long iowait= res[6];
-  long usertime= res[2];
-  
-  long nicetime= res[3];
-  long irqtime= res[7];
-  long softirq= res[8];
-  long steal= res[9];
-  long guest= res[10];
-  
-  long guest_nice= res[11];
+  FileReader<long> filread2(kProcDirectory + kStatFilename);
+  vector<long> res = filread2.GetVectorValue(characters::empty_);
+  int size = res.size();
+  long idle = res[5];
+  long iowait = res[6];
+  long usertime = res[2];
+
+  long nicetime = res[3];
+  long irqtime = res[7];
+  long softirq = res[8];
+  long steal = res[9];
+  long guest = res[10];
+
+  long guest_nice = res[11];
   long nonidle = usertime + nicetime + irqtime + softirq + steal;
-  long total_idle= idle +iowait;
-  long total= total_idle+ nonidle;
+  long total_idle = idle + iowait;
+  long total = total_idle + nonidle;
   std::vector<long> info;
   info.push_back(total);
-  info.push_back(total_idle);  
+  info.push_back(total_idle);
   return info;
 }
 // Read and return the total number of processes
@@ -158,8 +158,8 @@ string LinuxParser::Command(int pid) {
 string LinuxParser::Ram(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                            kStatusFilename);
-  float ram = filread.GetValue("VmSize")*1. / 1024.;
-  int format_ram= (int) (ram+0.5);
+  float ram = filread.GetValue("VmData") * 1. / 1024.;
+  int format_ram = (int)(ram + 0.5);
   return std::to_string(format_ram);
 }
 
@@ -171,17 +171,22 @@ string LinuxParser::Uid(int pid) {
 }
 
 // Read and return the user associated with a process
-//TODO: fix user mispelling 
+// TODO: fix user mispelling
 string LinuxParser::User(int pid) {
   FileReader<string> filread(kPasswordPath);
-  char c = ':';
-  vector<string> values = filread.GetVectorValue(c);
-  for (int i = 0; i < filread.GetVectorValue(c).size(); i++) {
-    try {
-      if (std::stoi(values[i]) == std::stoi(LinuxParser::Uid(pid)))
-        return values[i + 2];
-    } catch (exception e) {
-      continue;
+  vector<string> values = filread.GetVectorValue(characters::dpoint_);
+  for (int i = 0; i < filread.GetVectorValue(characters::dpoint_).size(); i++) {
+    if (!values[i].empty() &&
+        std::find_if(values[i].begin(), values[i].end(), [](unsigned char c) {
+          return !std::isdigit(c);
+        }) == values[i].end()) {
+      try {
+        if (std::stoi(values[i]) == std::stoi(LinuxParser::Uid(pid)))
+          return values[i + 2];
+      } catch (exception e) {
+        cerr << "Invalid argument"
+             << "\n";
+      }
     }
   }
 }
@@ -190,6 +195,6 @@ string LinuxParser::User(int pid) {
 long LinuxParser::UpTime(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                            kStatFilename);
-  char c = ' ';
-  return UpTime() - filread.GetVectorValue(c)[21] / sysconf(_SC_CLK_TCK);
+  return UpTime() -
+         filread.GetVectorValue(characters::empty_)[21] / sysconf(_SC_CLK_TCK);
 }

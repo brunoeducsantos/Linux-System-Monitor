@@ -46,3 +46,8 @@ long int Process::UpTime() {
 bool Process::operator<(Process const& a) const {
     return cpu_utilization_>a.cpu_utilization_;
  }
+
+ //  Overload the "more than than" comparison operator for Process objects
+ bool Process::operator>(Process const& a) const {
+    return cpu_utilization_<a.cpu_utilization_;
+ }
