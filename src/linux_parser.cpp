@@ -123,7 +123,7 @@ float LinuxParser::CpuUtilization(int pid) {
   return cpu_usage;
 }
 //Read CPU processor utilization
-float LinuxParser::CpuUtilization() {
+std::vector<long> LinuxParser::InfoCpu() {
   char c = ' ';
   FileReader<long> filread2(kProcDirectory +kStatFilename);
   vector<long> res = filread2.GetVectorValue(c);
@@ -142,8 +142,10 @@ float LinuxParser::CpuUtilization() {
   long nonidle = usertime + nicetime + irqtime + softirq + steal;
   long total_idle= idle +iowait;
   long total= total_idle+ nonidle;
-  return (total_idle*1./total);
-
+  std::vector<long> info;
+  info.push_back(total);
+  info.push_back(total_idle);  
+  return info;
 }
 // Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
