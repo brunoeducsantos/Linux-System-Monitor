@@ -14,7 +14,7 @@ using std::vector;
 // Return this process's ID
 int Process::Pid() { return pid_; }
 
-//TODO: Return this process's CPU utilization
+//Return this process's CPU utilization
 float Process::CpuUtilization() { 
     cpu_utilization_=LinuxParser::CpuUtilization(pid_);
     return cpu_utilization_;

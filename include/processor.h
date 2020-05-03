@@ -5,9 +5,9 @@
 class Processor {
  public:
   
-  float Utilization();  // TODO: See src/processor.cpp
+  float Utilization();  
 
-  // TODO: Declare any necessary private members
+  // Previous total and total_idle
  private:
     long prev_total_=0;
     long prev_total_idle_=0;
