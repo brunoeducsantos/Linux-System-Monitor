@@ -147,8 +147,8 @@ string LinuxParser::Command(int pid) {
 string LinuxParser::Ram(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                            kStatusFilename);
-  int ram = filread.GetValue("VmSize") / 1024;
-  return std::to_string(ram);
+  float ram = filread.GetValue("VmSize") / 1024.;
+  return std::to_string(round(ram));
 }
 
 // Read and return the user ID associated with a process
