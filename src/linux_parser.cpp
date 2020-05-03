@@ -106,14 +106,20 @@ float LinuxParser::CpuUtilization(int pid) {
   vector<long> res = filread.GetVectorValue(c);
   long utime = res[13];
   long stime = res[14];
+
   long cutime = res[15];
+
   long cstime = res[16];
+
   long starttime = res[21];
 
   long total_time = utime + stime;
+
   total_time = total_time + cutime + cstime;
   float seconds = UpTime() - (starttime / sysconf(_SC_CLK_TCK));
-  float cpu_usage = 100 * ((total_time / sysconf(_SC_CLK_TCK)) / 1 * seconds);
+  
+  float cpu_usage = 100 * ((total_time / sysconf(_SC_CLK_TCK)) / seconds);
+  
   return cpu_usage;
 }
 
@@ -141,7 +147,7 @@ string LinuxParser::Command(int pid) {
 string LinuxParser::Ram(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                            kStatusFilename);
-  float ram = filread.GetValue("VmSize") / 1024.;
+  int ram = filread.GetValue("VmSize") / 1024;
   return std::to_string(ram);
 }
 
@@ -160,7 +166,7 @@ string LinuxParser::User(int pid) {
   vector<string> values = filread.GetVectorValue(c);
   for (int i = 0; i < filread.GetVectorValue(c).size(); i++) {
     try {
-      if (std::stoi(values[i]) == std::stol(LinuxParser::Uid(pid)))
+      if (std::stoi(values[i]) == std::stoi(LinuxParser::Uid(pid)))
         return values[i + 2];
     } catch (exception e) {
       continue;
