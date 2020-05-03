@@ -9,7 +9,6 @@ class Processor {
 
   // TODO: Declare any necessary private members
  private:
-    float cpu_uti_;
 };
 
 #endif

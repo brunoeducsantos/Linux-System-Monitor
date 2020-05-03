@@ -122,7 +122,29 @@ float LinuxParser::CpuUtilization(int pid) {
   
   return cpu_usage;
 }
+//Read CPU processor utilization
+float LinuxParser::CpuUtilization() {
+  char c = ' ';
+  FileReader<long> filread2(kProcDirectory +kStatFilename);
+  vector<long> res = filread2.GetVectorValue(c);
+  int  size = res.size();
+  long idle= res[5];
+  long iowait= res[6];
+  long usertime= res[2];
+  
+  long nicetime= res[3];
+  long irqtime= res[7];
+  long softirq= res[8];
+  long steal= res[9];
+  long guest= res[10];
+  
+  long guest_nice= res[11];
+  long nonidle = usertime + nicetime + irqtime + softirq + steal;
+  long total_idle= idle +iowait;
+  long total= total_idle+ nonidle;
+  return (total_idle*1./total);
 
+}
 // Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
   FileReader<int> filread(kProcDirectory + kStatFilename);
