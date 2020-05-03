@@ -4,8 +4,8 @@
 // TODO: Return the aggregate CPU utilization
 float Processor::Utilization() {
   float sum = 0.;
-//   for (auto& pid : LinuxParser::Pids()) {
-//     sum += LinuxParser::CpuUtilization(pid);
-//   }
+  for (auto& pid : LinuxParser::Pids()) {
+    sum = LinuxParser::CpuUtilization(pid);
+  }
   return sum;
 }
