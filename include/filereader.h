@@ -23,6 +23,7 @@ class FileReader {
         }
       }
     }
+    return value;
   }
 
   ValueType GetValue() {
@@ -35,6 +36,7 @@ class FileReader {
       linestream >> value;
       return value;
     }
+    return value;
   }
   vector<ValueType> GetVectorValue(char separatr) {
     vector<ValueType> tokens;

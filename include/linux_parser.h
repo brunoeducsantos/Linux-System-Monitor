@@ -4,7 +4,7 @@
 #include <fstream>
 #include <regex>
 #include <string>
-
+using namespace std;
 namespace LinuxParser {
 // Paths
 const std::string kProcDirectory{"/proc/"};
@@ -17,6 +17,15 @@ const std::string kMeminfoFilename{"/meminfo"};
 const std::string kVersionFilename{"/version"};
 const std::string kOSPath{"/etc/os-release"};
 const std::string kPasswordPath{"/etc/passwd"};
+
+const string filterProcesses("processes");
+const string filterRunningProcesses("procs_running");
+const string filterMemTotalString("MemTotal");
+const string filterMemFreeString("MemFree");
+const string filterCpu("cpu");
+const string filterUID("Uid");
+const string filterProcMem("VmData"); // The string can be VmSize As well
+
 
 // System
 float MemoryUtilization();
@@ -44,6 +53,7 @@ enum characters{
   empty_=' ',
   dpoint_= ':'
 };
+
 
 float CpuUtilization(int pid);
 std::vector<long> InfoCpu();

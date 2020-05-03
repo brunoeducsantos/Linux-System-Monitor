@@ -73,8 +73,8 @@ vector<int> LinuxParser::Pids() {
 // Read and return the system memory utilization
 float LinuxParser::MemoryUtilization() {
   FileReader<int> filread(kProcDirectory + kMeminfoFilename);
-  int memtotal = filread.GetValue("MemTotal");
-  int memfree = filread.GetValue("MemFree");
+  int memtotal = filread.GetValue(filterMemTotalString);
+  int memfree = filread.GetValue(filterMemFreeString);
   float memperc = (memtotal - memfree) * 1. / memtotal * 1.;
   return memperc;
 }
@@ -114,7 +114,6 @@ float LinuxParser::CpuUtilization(int pid) {
 std::vector<long> LinuxParser::InfoCpu() {
   FileReader<long> filread2(kProcDirectory + kStatFilename);
   vector<long> res = filread2.GetVectorValue(characters::empty_);
-  int size = res.size();
   long idle = res[5];
   long iowait = res[6];
   long usertime = res[2];
@@ -123,9 +122,7 @@ std::vector<long> LinuxParser::InfoCpu() {
   long irqtime = res[7];
   long softirq = res[8];
   long steal = res[9];
-  long guest = res[10];
 
-  long guest_nice = res[11];
   long nonidle = usertime + nicetime + irqtime + softirq + steal;
   long total_idle = idle + iowait;
   long total = total_idle + nonidle;
@@ -137,13 +134,13 @@ std::vector<long> LinuxParser::InfoCpu() {
 // Read and return the total number of processes
 int LinuxParser::TotalProcesses() {
   FileReader<int> filread(kProcDirectory + kStatFilename);
-  return filread.GetValue("processes");
+  return filread.GetValue(filterProcesses);
 }
 
 // Read and return the number of running processes
 int LinuxParser::RunningProcesses() {
   FileReader<int> filread(kProcDirectory + kStatFilename);
-  return filread.GetValue("procs_running");
+  return filread.GetValue(filterRunningProcesses);
 }
 
 // Read and return the command associated with a process
@@ -154,11 +151,10 @@ string LinuxParser::Command(int pid) {
 }
 
 // Read and return the memory used by a process
-// TODO: Fix large invalid numbers
 string LinuxParser::Ram(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                            kStatusFilename);
-  float ram = filread.GetValue("VmData") * 1. / 1024.;
+  float ram = filread.GetValue(filterProcMem) * 1. / 1024.;
   int format_ram = (int)(ram + 0.5);
   return std::to_string(format_ram);
 }
@@ -167,7 +163,7 @@ string LinuxParser::Ram(int pid) {
 string LinuxParser::Uid(int pid) {
   FileReader<string> filread(kProcDirectory + std::to_string(pid) +
                              kStatusFilename);
-  return filread.GetValue("Uid");
+  return filread.GetValue(filterUID);
 }
 
 // Read and return the user associated with a process
@@ -175,20 +171,19 @@ string LinuxParser::Uid(int pid) {
 string LinuxParser::User(int pid) {
   FileReader<string> filread(kPasswordPath);
   vector<string> values = filread.GetVectorValue(characters::dpoint_);
-  for (int i = 0; i < filread.GetVectorValue(characters::dpoint_).size(); i++) {
-    if (!values[i].empty() &&
-        std::find_if(values[i].begin(), values[i].end(), [](unsigned char c) {
-          return !std::isdigit(c);
-        }) == values[i].end()) {
+  int size = filread.GetVectorValue(characters::dpoint_).size();
+  for (int i = 0; i < size; i++) {
+    if (!values[i].empty() && std::find_if(values[i].begin(), values[i].end(), [](unsigned char c) {return !std::isdigit(c);}) == values[i].end()) {
       try {
-        if (std::stoi(values[i]) == std::stoi(LinuxParser::Uid(pid)))
-          return values[i + 2];
+        if (std::stoi(values[i]) == std::stoi(LinuxParser::Uid(pid))) return values[i + 2];
       } catch (exception e) {
         cerr << "Invalid argument"
              << "\n";
       }
     }
   }
+  return "";
+
 }
 
 // Read and return the uptime of a process
