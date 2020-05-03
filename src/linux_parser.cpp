@@ -105,7 +105,7 @@ float LinuxParser::CpuUtilization(int pid) {
   total_time = total_time + cutime + cstime;
   float seconds = UpTime() - (starttime / sysconf(_SC_CLK_TCK));
   
-  float cpu_usage =  ((total_time *1./ sysconf(_SC_CLK_TCK)) / seconds);
+  float cpu_usage =  ((total_time *100./ sysconf(_SC_CLK_TCK)) / seconds);
   
   return cpu_usage;
 }
@@ -158,8 +158,9 @@ string LinuxParser::Command(int pid) {
 string LinuxParser::Ram(int pid) {
   FileReader<long> filread(kProcDirectory + std::to_string(pid) +
                            kStatusFilename);
-  float ram = filread.GetValue("VmSize") / 1024.;
-  return std::to_string(round(ram));
+  float ram = filread.GetValue("VmSize")*1. / 1024.;
+  int format_ram= (int) (ram+0.5);
+  return std::to_string(format_ram);
 }
 
 // Read and return the user ID associated with a process
