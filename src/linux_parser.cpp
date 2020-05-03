@@ -84,19 +84,6 @@ long LinuxParser::UpTime() {
   return filread.GetValue();
 }
 
-// TODO: Read and return the number of jiffies for the system
-long LinuxParser::Jiffies() { return 0; }
-
-// TODO: Read and return the number of active jiffies for a PID
-// REMOVE: [[maybe_unused]] once you define the function
-long LinuxParser::ActiveJiffies(int pid [[maybe_unused]]) { return 0; }
-
-// TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
-
-// TODO: Read and return the number of idle jiffies for the system
-long LinuxParser::IdleJiffies() { return 0; }
-
 // TODO: Read and return CPU utilization
 float LinuxParser::CpuUtilization(int pid) {
   char c = ' ';
@@ -122,7 +109,7 @@ float LinuxParser::CpuUtilization(int pid) {
   
   return cpu_usage;
 }
-//Read CPU processor utilization
+//Read CPU info utilization
 std::vector<long> LinuxParser::InfoCpu() {
   char c = ' ';
   FileReader<long> filread2(kProcDirectory +kStatFilename);
